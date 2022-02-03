@@ -1,11 +1,11 @@
-#ifndef __wifi_h_
-#define __wifi_h_
+#ifndef __wifi_connection_h_
+#define __wifi_connection_h_
 
 #include <WiFi.h>
 #include <WiFiUdp.h>
 
 class Networking {
-private:
+ private:
   static const char *ssid;
   static const char *pass;
   static const int udpPort;
@@ -13,7 +13,8 @@ private:
   static void (*onWifiChange)(boolean);
 
   static void connect();
-public:
+
+ public:
   Networking(void (*onWifiChange)(boolean));
   static void WiFiEvent(WiFiEvent_t event);
   static WiFiUDP *udp;

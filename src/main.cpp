@@ -1,16 +1,34 @@
+#include <Adafruit_GFX.h>  // Core graphics library
 #include <OSCMessage.h>
-/* #include <ESP32-HUB75-MatrixPanel-I2S-DMA.h> */
-
-#include <Adafruit_GFX.h> // Core graphics library
 #include <P3RGB64x32MatrixPanel.h>
+
+#include "wifi_connection.h"
 
 // constructor with default pin wiring
 P3RGB64x32MatrixPanel matrix;
+Networking *net;
 
-#define PANEL_RES_X 64 // Number of pixels wide of each INDIVIDUAL panel module.
-#define PANEL_RES_Y 32 // Number of pixels tall of each INDIVIDUAL panel module.
+// Number of pixels of each INDIVIDUAL panel module.
+#define PANEL_RES_X 64
+#define PANEL_RES_Y 32
 #define PANEL_CHAIN 1  // Total number of panels chained one to another
 
+struct Point {
+  uint8_t x;
+  uint8_t y;
+};
+
+struct Line {
+  Point center;
+  uint8_t length;
+  uint8_t angle;
+};
+
+std::vector<Line> lines = {{
+    {{10, 10}, 10, 0},
+}};
+
+// GLOBAL STATE VARIABLES
 // Are we currently connected?
 boolean connected = false;
 boolean initialized = false;
@@ -18,11 +36,11 @@ boolean initialized = false;
 uint8_t red, green, blue;
 float decayLength = 0.6;
 float decayFactor = pow(decayLength, 0.016);
-
-#include "wifi.h"
+uint8_t brightness = 0;
 
 void onBang(OSCMessage &msg);
 void onColor(OSCMessage &msg);
+void onDecay(OSCMessage &msg);
 
 void onWifiChange(boolean _connected) {
   // was connected, now disconnected
@@ -32,9 +50,7 @@ void onWifiChange(boolean _connected) {
     matrix.stop();
     Serial.println(" [Matrix stopped.]");
     initialized = false;
-  } else 
-    // got connected, isn't initialized
-  if (_connected && !initialized) {
+  } else if (_connected && !initialized) {  // got connected, isn't initialized
     connected = _connected;
     Serial.print("Initializing matrix...");
     matrix.begin();
@@ -45,11 +61,13 @@ void onWifiChange(boolean _connected) {
   }
 }
 
-Networking *net;
-
 void setup(void) {
   Serial.begin(115200);
   net = new Networking(&onWifiChange);
+}
+
+uint8_t fadeUint(uint8_t val, float factor) {
+  return (uint8_t)(floorf(((float)val) * factor));
 }
 
 void loop(void) {
@@ -59,16 +77,24 @@ void loop(void) {
   }
 
   // Render and decay
-  matrix.fillRect(0, 0, matrix.width(), matrix.height(),
-                  matrix.color555(red, green, blue));
-  red *= decayFactor;
-  green *= decayFactor;
-  blue *= decayFactor;
+  brightness = fadeUint(brightness, decayFactor);
+  uint16_t matrix_color = matrix.colorHSV(0, 0, brightness);
+  matrix.fillScreen(matrix_color);
+
+  uint16_t x0 = (uint16_t)rand() % PANEL_RES_X;
+  uint16_t y0 = (uint16_t)rand() % PANEL_RES_Y;
+  uint16_t length = (uint16_t)rand();
+  uint16_t color = (uint16_t)rand();
+
+  if (rand() % 2) {
+    matrix.drawFastHLine(x0, y0, length, color);
+  } else {
+    matrix.drawFastVLine(x0, y0, length, color);
+  }
 
   // Process UDP packets as OSC messages
   int size = Networking::udp->parsePacket();
-  if (size <= 0)
-    return;
+  if (size <= 0) return;
   OSCMessage inmsg;
   while (size--) {
     inmsg.fill(Networking::udp->read());
@@ -78,6 +104,7 @@ void loop(void) {
   if (!inmsg.hasError()) {
     inmsg.dispatch("/bang", onBang);
     inmsg.dispatch("/color", onColor);
+    inmsg.dispatch("/decay", onDecay);
   } else {
     Serial.println("Error in OSC message.");
   }
@@ -89,17 +116,18 @@ void loop(void) {
 
 void onBang(OSCMessage &msg) {
   /* Serial.println("onBang"); */
-  uint32_t rnd = esp_random();
-  red = 0x1 | (rnd & 0xf);
-  green = 0x1 | ((rnd >> 4) & 0xf);
-  blue = 0x1 | ((rnd >> 8) & 0xf);
+  brightness = UINT8_MAX;
+}
+
+void onDecay(OSCMessage &msg) {
+  float new_decay = msg.getFloat(0);
+  // Serial.printf("new decay: %f\n", new_decay);
+  decayFactor = new_decay;
 }
 
 void onColor(OSCMessage &msg) {
-  if (!msg.isString(0))
-    Serial.println("isString(0) error");
-  if (!msg.isFloat(1))
-    Serial.println("isFloat(1) error");
+  if (!msg.isString(0)) Serial.println("isString(0) error");
+  if (!msg.isFloat(1)) Serial.println("isFloat(1) error");
   char color[8];
   msg.getString(0, color);
   uint8_t val32 = msg.getInt(1) & 0x1f;
