@@ -25,7 +25,6 @@ class Screen : virtual public Component {
   }
 
   void render() {
-    this->brightness = fadeUint(this->brightness, this->decayFactor);
     uint16_t matrix_color = this->matrix->colorHSV(0, 0, this->brightness);
     this->matrix->fillScreen(matrix_color);
   }

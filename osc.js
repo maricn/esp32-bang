@@ -11,14 +11,20 @@ async function sequence() {
   osc.send(bang);
   await sleep(100);
 
+  let i = 0;
+
+  osc.send(new OSC.Message("/decay", 0.9999992));
   while (true) {
     osc.send(new OSC.Message("/line"));
     // osc.send(new OSC.Message("/color", "red", 0x1f));
-    await sleep(280);
+    await sleep(16);
     // osc.send(new OSC.Message("/color", "green", 0x1f));
     // await sleep(280);
     // osc.send(new OSC.Message("/color", "blue", 0x1f));
     // await sleep(280);
+    if (i++ % 128 == 0) {
+      osc.send(new OSC.Message("/bang"));
+    }
   }
 
   while (true) {

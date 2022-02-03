@@ -1,19 +1,19 @@
 #include <Adafruit_GFX.h>  // Core graphics library
 #include <OSCMessage.h>
 #include <P3RGB64x32MatrixPanel.h>
+
 #include <list>
 
-#include "geometry/util.h"
 #include "geometry/component.h"
 #include "geometry/line.h"
 #include "geometry/point.h"
 #include "geometry/screen.h"
+#include "geometry/util.h"
 #include "wifi_connection.h"
 
 // constructor with default pin wiring
 P3RGB64x32MatrixPanel matrix;
 Networking *net;
-
 
 std::list<Component *> components;
 Screen *screen = new Screen(&matrix);
@@ -62,15 +62,17 @@ void loop(void) {
   }
 
   // Tick and render all components
-  for (Component *component : components) {
+  std::list<Component *>::iterator i = components.begin();
+  while (i != components.end()) {
+    Component *component = (*i);
     bool componentAlive = component->tick();
     if (!componentAlive) {
-      components.remove(component);
-      delete component;
-      continue;
+      i = components.erase(i);
+      /* delete component; */
+    } else {
+      component->render();
+      ++i;
     }
-
-    component->render();
   }
   /* brightness = fadeUint(brightness, decayFactor); */
   /* uint16_t matrix_color = matrix.colorHSV(0, 0, brightness); */
@@ -112,7 +114,7 @@ void loop(void) {
 
 void onBang(OSCMessage &msg) {
   /* Serial.println("onBang"); */
-  screen->setBrightness(0x1f);
+  screen->setBrightness((uint8_t) 0x1f);
 }
 
 void onDecay(OSCMessage &msg) {
@@ -122,10 +124,11 @@ void onDecay(OSCMessage &msg) {
 }
 
 void onLine(OSCMessage &msg) {
-  Line *line = new Line(&matrix,
-                        new Point((uint8_t)(esp_random() % PANEL_RES_X),
-                                  (uint8_t)(esp_random() % PANEL_RES_Y)),
-                        esp_random() % 20, (float) ((int8_t) (esp_random() & 0x7f) << 1) / (float) INT8_MAX);
+  Line *line = new Line(
+      &matrix,
+      new Point((uint8_t)(esp_random() % (PANEL_RES_X / 2) + PANEL_RES_X / 4),
+                (uint8_t)(esp_random() % (PANEL_RES_Y / 2) + PANEL_RES_Y / 4)),
+      esp_random() % 20, esp_random() % 90);
   components.push_back(line);
 }
 
