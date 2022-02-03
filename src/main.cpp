@@ -12,7 +12,7 @@
 #include "wifi_connection.h"
 
 // constructor with default pin wiring
-P3RGB64x32MatrixPanel matrix;
+P3RGB64x32MatrixPanel matrix(true);
 Networking *net;
 
 std::list<Component *> components;
@@ -44,6 +44,7 @@ void onWifiChange(boolean _connected) {
     matrix.begin();
     matrix.fillRect(0, 0, matrix.width(), matrix.height(),
                     matrix.color444(0, 12, 0));
+    matrix.swapBuffer();
     components.push_back(screen);
     initialized = true;
     Serial.println(" [Matrix initialized.]");
@@ -74,6 +75,7 @@ void loop(void) {
       ++i;
     }
   }
+  matrix.swapBuffer();
   /* brightness = fadeUint(brightness, decayFactor); */
   /* uint16_t matrix_color = matrix.colorHSV(0, 0, brightness); */
   /* matrix.fillScreen(matrix_color); */
