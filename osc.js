@@ -12,7 +12,7 @@ async function sequence() {
   await sleep(100);
 
   while (true) {
-    osc.send(new OSC.Message("/bang"));
+    osc.send(new OSC.Message("/line"));
     // osc.send(new OSC.Message("/color", "red", 0x1f));
     await sleep(280);
     // osc.send(new OSC.Message("/color", "green", 0x1f));
@@ -40,4 +40,5 @@ function sleep(ms) {
   });
 }
 
+osc.send(new OSC.Message("/decay", 0.4999999));
 sequence();
