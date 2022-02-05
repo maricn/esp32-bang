@@ -13,11 +13,11 @@ class Line : virtual public Component {
   P3RGB64x32MatrixPanel *matrix;
   Point *center;
   uint8_t radius;
-  float angle;
+  uint8_t angle;
 
  public:
   Line(P3RGB64x32MatrixPanel *matrix, Point *center, uint8_t radius,
-       float angle) {
+       uint8_t angle) {
     this->matrix = matrix;
     this->center = center;
     this->radius = radius;
@@ -30,25 +30,31 @@ class Line : virtual public Component {
     this->radius -= 1;
     if (this->radius <= 0) return false;
 
-    // shake
-    /* this->angle += esp_random() % 10 - 5; */
     // shakey slide
-    this->angle += esp_random() % 5 - 1;
+    /* this->angle += esp_random() % 5 - 1; */
     // slide
-    /* this->angle += 2; */
+    this->angle = this->angle + 2 % 360;
     return true;
   }
 
   void render() {
+#if DEBUG_GFX
+    Serial.printf("[DEBUG] GFX.Line[%3u].render: (%u, %u), %u, %u\n", this->id,
+                  this->center->x, this->center->y, this->radius, this->angle);
+#endif
     float width =
         floorf((float)this->radius * cos(this->angle * Line::deg2rad));
     float height =
         floorf((float)this->radius * sin(this->angle * Line::deg2rad));
-    uint8_t x0, y0, x1, y1;
-    x0 = (uint8_t)(this->center->x - width);
-    x1 = (uint8_t)(this->center->x + width);
-    y0 = (uint8_t)(this->center->y - height);
-    y1 = (uint8_t)(this->center->y + height);
+    int8_t x0, y0, x1, y1;
+    x0 = (int8_t)(this->center->x) - width;
+    x1 = (int8_t)(this->center->x) + width;
+    y0 = (int8_t)(this->center->y) - height;
+    y1 = (int8_t)(this->center->y) + height;
+#if DEBUG_GFX
+    Serial.printf("[DEBUG] GFX.Line[%3u].render: {(%d, %d), (%d, %d)}\n",
+                  this->id, x0, y0, x1, y1);
+#endif
 
     this->matrix->drawLine(x0 < 0             ? 0
                            : x0 > PANEL_RES_X ? PANEL_RES_X
@@ -67,5 +73,27 @@ class Line : virtual public Component {
 };
 
 float Line::deg2rad = PI / 180.f;
+
+class LineThatRotates : public Line {
+ public:
+  LineThatRotates(Line line) : Line(line){};
+  bool tick() {
+    this->radius -= 1;
+    if (this->radius <= 0) return false;
+    this->angle = this->angle + 2 % 360;
+    return true;
+  }
+};
+
+class LineThatShakes : public Line {
+ public:
+  LineThatShakes(Line line) : Line(line){};
+  bool tick() {
+    this->radius -= 1;
+    if (this->radius <= 0) return false;
+    this->angle = (this->angle + esp_random() % 10 - 5) % 360;
+    return true;
+  }
+};
 
 #endif

@@ -19,6 +19,11 @@ class Screen : virtual public Component {
 
   void setDecayFactor(float decayFactor) { this->decayFactor = decayFactor; }
 
+  void setDecayLength(float decayLength) {
+    this->decayLength = decayLength;
+    this->decayFactor = pow(decayLength, 0.016);
+  }
+
   bool tick() {
     this->brightness = fadeUint(this->brightness, this->decayFactor);
     return true;

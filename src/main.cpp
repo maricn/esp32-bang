@@ -2,6 +2,9 @@
 #include <OSCMessage.h>
 #include <P3RGB64x32MatrixPanel.h>
 
+#define DEBUG_GFX 0
+#define DEBUG_OSC 0
+
 #include <list>
 
 #include "geometry/component.h"
@@ -59,6 +62,7 @@ void setup(void) {
 void loop(void) {
   if (!connected) {
     delay(1000);
+    Serial.print(".");
     return;
   }
 
@@ -92,46 +96,68 @@ void loop(void) {
   /* } */
 
   // Process UDP packets as OSC messages
-  int size = Networking::udp->parsePacket();
-  if (size <= 0) return;
-  OSCMessage inmsg;
-  while (size--) {
-    inmsg.fill(Networking::udp->read());
-  }
+  while (true) {
+    int size = Networking::udp->parsePacket();
+    if (size <= 0) break;
+    OSCMessage inmsg;
+    while (size--) {
+      inmsg.fill(Networking::udp->read());
+    }
 
-  // Process OSC messages as commands using local callback functions
-  if (!inmsg.hasError()) {
-    inmsg.dispatch("/bang", onBang);
-    inmsg.dispatch("/line", onLine);
-    inmsg.dispatch("/color", onColor);
-    inmsg.dispatch("/decay", onDecay);
-  } else {
-    Serial.println("Error in OSC message.");
-  }
+    // Process OSC messages as commands using local callback functions
+    if (!inmsg.hasError()) {
+      inmsg.dispatch("/bang", onBang);
+      inmsg.dispatch("/line", onLine);
+      inmsg.dispatch("/color", onColor);
+      inmsg.dispatch("/decay", onDecay);
+    } else {
+      Serial.println("Error in OSC message.");
+    }
 
-  // Rinse & repeat
-  inmsg.empty();
+    // Rinse & repeat
+    inmsg.empty();
+  }
   delay(16);
 }
 
 void onBang(OSCMessage &msg) {
-  /* Serial.println("onBang"); */
-  screen->setBrightness((uint8_t) 0x1f);
+#if DEBUG_OSC
+  Serial.printf("[DEBUG] OSC.onBang\n");
+#endif
+  screen->setBrightness((uint8_t)0x1f);
 }
 
 void onDecay(OSCMessage &msg) {
   float new_decay = msg.getFloat(0);
-  // Serial.printf("new decay: %f\n", new_decay);
-  screen->setDecayFactor(new_decay);
+#if DEBUG_OSC
+  Serial.printf("[DEBUG] OSC.onDecay: %f\n", new_decay);
+#endif
+  screen->setDecayLength(new_decay);
 }
 
 void onLine(OSCMessage &msg) {
-  Line *line = new Line(
-      &matrix,
-      new Point((uint8_t)(esp_random() % (PANEL_RES_X / 2) + PANEL_RES_X / 4),
-                (uint8_t)(esp_random() % (PANEL_RES_Y / 2) + PANEL_RES_Y / 4)),
-      esp_random() % 20, esp_random() % 90);
-  components.push_back(line);
+  uint8_t type = (uint8_t)msg.getInt(0);
+#if DEBUG_OSC
+  Serial.printf("[DEBUG] OSC.onLine: %u\n", type);
+#endif
+  // coordinates within 64x32, at least (8,4) or lower (x,y)
+  Point *center = new Point((uint8_t)(esp_random() & 0x3f) | 0x8,
+                            (uint8_t)(esp_random() & 0x1f) | 0x4);
+  // can't be zero bc tick() when zero can make it 255
+  uint8_t radius = (uint8_t)(esp_random() & 0b000011110) | 0b01;
+  Line *line = new Line(&matrix, center, radius, esp_random() % 90);
+
+  switch (type) {
+    case 1:
+      components.push_back(new LineThatRotates(*line));
+      break;
+    case 2:
+      components.push_back(new LineThatShakes(*line));
+      break;
+    default:
+    case 0:
+      break;
+  }
 }
 
 void onColor(OSCMessage &msg) {
@@ -140,7 +166,9 @@ void onColor(OSCMessage &msg) {
   char color[8];
   msg.getString(0, color);
   uint8_t val32 = msg.getInt(1) & 0x1f;
-  /* Serial.printf("onColor: %s(%u)\n", color, val32); */
+#if DEBUG_OSC
+  Serial.printf("[DEBUG] OSC.onColor: %s, %u\n", color, val32);
+#endif
   if (strcmp("red", color) == 0) {
     red = val32;
     return;
