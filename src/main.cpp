@@ -1,11 +1,9 @@
-#include <Adafruit_GFX.h>  // Core graphics library
+#include <list>
 #include <OSCMessage.h>
-#include <P3RGB64x32MatrixPanel.h>
+#include <ESP32-HUB75-MatrixPanel-I2S-DMA.h>
 
 #define DEBUG_GFX 0
 #define DEBUG_OSC 0
-
-#include <list>
 
 #include "geometry/component.h"
 #include "geometry/line.h"
@@ -13,9 +11,10 @@
 #include "geometry/screen.h"
 #include "geometry/util.h"
 #include "wifi/wifi_connection.h"
+#include "matrix_config.h"
 
 // constructor with default pin wiring
-P3RGB64x32MatrixPanel matrix(true);
+MatrixPanel_I2S_DMA matrix(mxconfig);
 Networking *net;
 
 std::list<Component *> components;
@@ -36,16 +35,15 @@ void onWifiChange(boolean _connected) {
   if (connected && !_connected) {
     connected = _connected;
     Serial.println("Stopping matrix...");
-    matrix.stop();
+    matrix.stopDMAoutput();
     Serial.println(" [Matrix stopped.]");
     initialized = false;
   } else if (_connected && !initialized) {  // got connected, isn't initialized
     connected = _connected;
     Serial.print("Initializing matrix...");
     matrix.begin();
-    matrix.fillRect(0, 0, matrix.width(), matrix.height(),
-                    matrix.color444(0, 12, 0));
-    matrix.swapBuffer();
+    matrix.fillScreen(matrix.color444(0, 12, 0));
+    matrix.flipDMABuffer();
     components.push_back(screen);
     initialized = true;
     Serial.println(" [Matrix initialized.]");
@@ -77,7 +75,7 @@ void loop(void) {
       ++i;
     }
   }
-  matrix.swapBuffer();
+  matrix.flipDMABuffer();
 
   // Process UDP packets as OSC messages
   while (true) {

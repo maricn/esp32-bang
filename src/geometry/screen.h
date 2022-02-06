@@ -6,14 +6,14 @@
 
 class Screen : virtual public Component {
  private:
-  P3RGB64x32MatrixPanel *matrix;
+  MatrixPanel_I2S_DMA *matrix;
   uint8_t brightness = 0;
   uint8_t hue = 0;
   float decayLength = 0.6;
   float decayFactor = pow(decayLength, 0.016);
 
  public:
-  Screen(P3RGB64x32MatrixPanel *matrix) { this->matrix = matrix; }
+  Screen(MatrixPanel_I2S_DMA *matrix) { this->matrix = matrix; }
   ~Screen() {}
 
   void setBrightness(uint8_t brightness) { this->brightness = brightness; }
@@ -33,7 +33,7 @@ class Screen : virtual public Component {
   }
 
   void render() {
-    uint16_t matrix_color = this->matrix->colorHSV(this->hue, this->brightness, this->brightness);
+    uint16_t matrix_color = colorHSV(this->hue, this->brightness, this->brightness);
     this->matrix->fillScreen(matrix_color);
   }
 };

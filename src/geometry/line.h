@@ -1,22 +1,23 @@
 #ifndef __line_h_
 #define __line_h_
 
-#include <P3RGB64x32MatrixPanel.h>
+#include <ESP32-HUB75-MatrixPanel-I2S-DMA.h>
 #include <math.h>
 
+#include "matrix_config.h"
 #include "point.h"
 #include "util.h"
 
 class Line : virtual public Component {
  protected:
   static float deg2rad;
-  P3RGB64x32MatrixPanel *matrix;
+  MatrixPanel_I2S_DMA *matrix;
   Point center;
   uint8_t radius;
   uint8_t angle;
 
  public:
-  Line(P3RGB64x32MatrixPanel *matrix, Point center, uint8_t radius,
+  Line(MatrixPanel_I2S_DMA *matrix, Point center, uint8_t radius,
        uint8_t angle) {
     this->matrix = matrix;
     this->center = center;
@@ -66,7 +67,7 @@ float Line::deg2rad = PI / 180.f;
 
 class LineThatRotates : public Line {
  public:
-  LineThatRotates(P3RGB64x32MatrixPanel *matrix, Point center, uint8_t radius,
+  LineThatRotates(MatrixPanel_I2S_DMA *matrix, Point center, uint8_t radius,
                   uint8_t angle)
       : Line(matrix, center, radius, angle) {}
 
@@ -80,7 +81,7 @@ class LineThatRotates : public Line {
 
 class LineThatShakes : public Line {
  public:
-  LineThatShakes(P3RGB64x32MatrixPanel *matrix, Point center, uint8_t radius,
+  LineThatShakes(MatrixPanel_I2S_DMA *matrix, Point center, uint8_t radius,
                  uint8_t angle)
       : Line(matrix, center, radius, angle) {}
 
