@@ -11,20 +11,18 @@ class Line : virtual public Component {
  protected:
   static float deg2rad;
   P3RGB64x32MatrixPanel *matrix;
-  Point *center;
+  Point center;
   uint8_t radius;
   uint8_t angle;
 
  public:
-  Line(P3RGB64x32MatrixPanel *matrix, Point *center, uint8_t radius,
+  Line(P3RGB64x32MatrixPanel *matrix, Point center, uint8_t radius,
        uint8_t angle) {
     this->matrix = matrix;
     this->center = center;
     this->radius = radius;
     this->angle = angle;
   };
-
-  ~Line() { delete center; }
 
   bool tick() {
     this->radius -= 1;
@@ -40,17 +38,17 @@ class Line : virtual public Component {
   void render() {
 #if DEBUG_GFX
     Serial.printf("[DEBUG] GFX.Line[%3u].render: (%u, %u), %u, %u\n", this->id,
-                  this->center->x, this->center->y, this->radius, this->angle);
+                  this->center.x, this->center.y, this->radius, this->angle);
 #endif
     float width =
         floorf((float)this->radius * cos(this->angle * Line::deg2rad));
     float height =
         floorf((float)this->radius * sin(this->angle * Line::deg2rad));
 
-    int8_t x0 = (int8_t)(this->center->x) - width;
-    int8_t x1 = (int8_t)(this->center->x) + width;
-    int8_t y0 = (int8_t)(this->center->y) - height;
-    int8_t y1 = (int8_t)(this->center->y) + height;
+    int8_t x0 = (int8_t)(this->center.x) - width;
+    int8_t x1 = (int8_t)(this->center.x) + width;
+    int8_t y0 = (int8_t)(this->center.y) - height;
+    int8_t y1 = (int8_t)(this->center.y) + height;
 #if DEBUG_GFX
     Serial.printf("[DEBUG] GFX.Line[%3u].render: {(%d, %d), (%d, %d)}\n",
                   this->id, x0, y0, x1, y1);
@@ -68,7 +66,7 @@ float Line::deg2rad = PI / 180.f;
 
 class LineThatRotates : public Line {
  public:
-  LineThatRotates(P3RGB64x32MatrixPanel *matrix, Point *center, uint8_t radius,
+  LineThatRotates(P3RGB64x32MatrixPanel *matrix, Point center, uint8_t radius,
                   uint8_t angle)
       : Line(matrix, center, radius, angle) {}
 
@@ -82,7 +80,7 @@ class LineThatRotates : public Line {
 
 class LineThatShakes : public Line {
  public:
-  LineThatShakes(P3RGB64x32MatrixPanel *matrix, Point *center, uint8_t radius,
+  LineThatShakes(P3RGB64x32MatrixPanel *matrix, Point center, uint8_t radius,
                  uint8_t angle)
       : Line(matrix, center, radius, angle) {}
 

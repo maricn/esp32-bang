@@ -141,21 +141,24 @@ void onLine(OSCMessage &msg) {
   Serial.printf("[DEBUG] OSC.onLine: %u\n", type);
 #endif
   // coordinates within 64x32, at least (8,4) or lower (x,y)
-  Point *center = new Point((uint8_t)(esp_random() & 0x3f) | 0x8,
-                            (uint8_t)(esp_random() & 0x1f) | 0x4);
+  Point center = {(uint8_t)(esp_random() & 0x3f) | 0x8,
+                  (uint8_t)(esp_random() & 0x1f) | 0x4};
   // can't be zero bc tick() when zero can make it 255
   uint8_t radius = (uint8_t)(esp_random() & 0b000011110) | 0b01;
 
   switch (type) {
     case 1:
-      components.push_back(new LineThatRotates(&matrix, center, radius, esp_random() % 90));
+      components.push_back(
+          new LineThatRotates(&matrix, center, radius, esp_random() % 90));
       break;
     case 2:
-      components.push_back(new LineThatShakes(&matrix, center, radius, esp_random() % 90));
+      components.push_back(
+          new LineThatShakes(&matrix, center, radius, esp_random() % 90));
       break;
     default:
     case 0:
-      components.push_back(new Line(&matrix, center, radius, esp_random() % 90));
+      components.push_back(
+          new Line(&matrix, center, radius, esp_random() % 90));
       break;
   }
 }
