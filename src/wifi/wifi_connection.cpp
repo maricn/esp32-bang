@@ -1,7 +1,6 @@
 #include "wifi_connection.h"
+#include "wifi_config.h"
 
-const char *Networking::ssid = "REDACTED";
-const char *Networking::pass = "REDACTED";
 const int Networking::udpPort = 3333;
 bool Networking::connecting = false;
 void (*Networking::onWifiChange)(boolean) = NULL;
@@ -26,8 +25,8 @@ void Networking::connect() {
   WiFi.disconnect(true);
   delay(500);
 
-  Serial.printf(" Connecting to WiFi network: '%s'...", ssid);
-  WiFi.begin(Networking::ssid, Networking::pass);
+  Serial.printf(" Connecting to WiFi network: '%s'...", WIFI_SSID);
+  WiFi.begin(WIFI_SSID, WIFI_PW);
   Serial.println("Started the WiFi connection handshake...");
   delay(500);
 }

@@ -3,3 +3,4 @@
 .gcc-flags.json
 .ccls
 node_modules/
+src/wifi/wifi_config.h

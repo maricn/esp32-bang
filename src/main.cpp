@@ -12,7 +12,7 @@
 #include "geometry/point.h"
 #include "geometry/screen.h"
 #include "geometry/util.h"
-#include "wifi_connection.h"
+#include "wifi/wifi_connection.h"
 
 // constructor with default pin wiring
 P3RGB64x32MatrixPanel matrix(true);
