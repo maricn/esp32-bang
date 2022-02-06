@@ -76,7 +76,10 @@ float Line::deg2rad = PI / 180.f;
 
 class LineThatRotates : public Line {
  public:
-  LineThatRotates(Line line) : Line(line){};
+  LineThatRotates(P3RGB64x32MatrixPanel *matrix, Point *center, uint8_t radius,
+                  uint8_t angle)
+      : Line(matrix, center, radius, angle) {}
+
   bool tick() {
     this->radius -= 1;
     if (this->radius <= 0) return false;
@@ -87,7 +90,10 @@ class LineThatRotates : public Line {
 
 class LineThatShakes : public Line {
  public:
-  LineThatShakes(Line line) : Line(line){};
+  LineThatShakes(P3RGB64x32MatrixPanel *matrix, Point *center, uint8_t radius,
+                  uint8_t angle)
+      : Line(matrix, center, radius, angle) {}
+
   bool tick() {
     this->radius -= 1;
     if (this->radius <= 0) return false;

@@ -145,17 +145,17 @@ void onLine(OSCMessage &msg) {
                             (uint8_t)(esp_random() & 0x1f) | 0x4);
   // can't be zero bc tick() when zero can make it 255
   uint8_t radius = (uint8_t)(esp_random() & 0b000011110) | 0b01;
-  Line *line = new Line(&matrix, center, radius, esp_random() % 90);
 
   switch (type) {
     case 1:
-      components.push_back(new LineThatRotates(*line));
+      components.push_back(new LineThatRotates(&matrix, center, radius, esp_random() % 90));
       break;
     case 2:
-      components.push_back(new LineThatShakes(*line));
+      components.push_back(new LineThatShakes(&matrix, center, radius, esp_random() % 90));
       break;
     default:
     case 0:
+      components.push_back(new Line(&matrix, center, radius, esp_random() % 90));
       break;
   }
 }
