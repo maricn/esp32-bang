@@ -26,8 +26,6 @@ Screen *screen = new Screen(&matrix);
 boolean connected = false;
 boolean initialized = false;
 
-uint8_t red, green, blue;
-
 void onBang(OSCMessage &msg);
 void onLine(OSCMessage &msg);
 void onColor(OSCMessage &msg);
@@ -80,20 +78,6 @@ void loop(void) {
     }
   }
   matrix.swapBuffer();
-  /* brightness = fadeUint(brightness, decayFactor); */
-  /* uint16_t matrix_color = matrix.colorHSV(0, 0, brightness); */
-  /* matrix.fillScreen(matrix_color); */
-
-  /* uint16_t x0 = (uint16_t)rand() % PANEL_RES_X; */
-  /* uint16_t y0 = (uint16_t)rand() % PANEL_RES_Y; */
-  /* uint16_t length = (uint16_t)rand(); */
-  /* uint16_t color = (uint16_t)rand(); */
-
-  /* if (rand() % 2) { */
-  /*   matrix.drawFastHLine(x0, y0, length, color); */
-  /* } else { */
-  /*   matrix.drawFastVLine(x0, y0, length, color); */
-  /* } */
 
   // Process UDP packets as OSC messages
   while (true) {
@@ -141,8 +125,8 @@ void onLine(OSCMessage &msg) {
   Serial.printf("[DEBUG] OSC.onLine: %u\n", type);
 #endif
   // coordinates within 64x32, at least (8,4) or lower (x,y)
-  Point center = {(uint8_t)(esp_random() & 0x3f) | 0x8,
-                  (uint8_t)(esp_random() & 0x1f) | 0x4};
+  Point center = {(uint8_t)(esp_random() & 0x3f | 0x8),
+                  (uint8_t)(esp_random() & 0x1f | 0x4)};
   // can't be zero bc tick() when zero can make it 255
   uint8_t radius = (uint8_t)(esp_random() & 0b000011110) | 0b01;
 
@@ -155,8 +139,8 @@ void onLine(OSCMessage &msg) {
       components.push_back(
           new LineThatShakes(&matrix, center, radius, esp_random() % 90));
       break;
-    default:
     case 0:
+    default:
       components.push_back(
           new Line(&matrix, center, radius, esp_random() % 90));
       break;
@@ -164,24 +148,10 @@ void onLine(OSCMessage &msg) {
 }
 
 void onColor(OSCMessage &msg) {
-  if (!msg.isString(0)) Serial.println("isString(0) error");
-  if (!msg.isFloat(1)) Serial.println("isFloat(1) error");
-  char color[8];
-  msg.getString(0, color);
-  uint8_t val32 = msg.getInt(1) & 0x1f;
+  if (!msg.isInt(0)) Serial.println("isFloat(0) error");
+  uint8_t val32 = msg.getInt(0) & 0x1f;
 #if DEBUG_OSC
-  Serial.printf("[DEBUG] OSC.onColor: %s, %u\n", color, val32);
+  Serial.printf("[DEBUG] OSC.onColor: %u\n", val32);
 #endif
-  if (strcmp("red", color) == 0) {
-    red = val32;
-    return;
-  }
-  if (strcmp("green", color) == 0) {
-    green = val32;
-    return;
-  }
-  if (strcmp("blue", color) == 0) {
-    blue = val32;
-    return;
-  }
+  screen->setHue(val32);
 }

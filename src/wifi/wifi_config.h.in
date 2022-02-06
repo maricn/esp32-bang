@@ -1,3 +1,3 @@
 // Change the following constants and save file as wifi_config.h
 #define WIFI_SSID "PLEASE_EDIT"
-#define WIFI_PW "PLEASE_EDIT"
+#define WIFI_PW   "PLEASE_EDIT"
