@@ -1,16 +1,16 @@
 #ifndef __util_h_
 #define __util_h_
 
-uint8_t fadeUint(uint8_t val, float factor) {
+inline uint8_t fadeUint(uint8_t val, float factor) {
   return (uint8_t)(floorf(((float)val) * factor));
 }
 
-int8_t clip(int8_t val, int8_t min, int8_t max) {
+inline int8_t clip(int8_t val, int8_t min, int8_t max) {
   return val < min ? min : (val > max ? max : val);
 }
 
 
-uint16_t colorHSV(long hue, uint8_t sat, uint8_t val) {
+inline uint16_t colorHSV(long hue, uint8_t sat, uint8_t val) {
   uint8_t  r, g, b, lo;
   uint16_t s1, v1;
 

@@ -4,13 +4,14 @@
 #include <ESP32-HUB75-MatrixPanel-I2S-DMA.h>
 #include <math.h>
 
+#include "component.h"
 #include "matrix_config.h"
 #include "point.h"
 #include "util.h"
 
 class Line : virtual public Component {
  protected:
-  static float deg2rad;
+  static constexpr float deg2rad = PI / 180.f;
   MatrixPanel_I2S_DMA *matrix;
   Point center;
   uint8_t radius;
@@ -62,8 +63,6 @@ class Line : virtual public Component {
     this->matrix->drawLine(x0, y0, x1, y1, (uint8_t)esp_random());
   }
 };
-
-float Line::deg2rad = PI / 180.f;
 
 class LineThatRotates : public Line {
  public:

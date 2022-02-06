@@ -23,8 +23,8 @@
 #define LAT_PIN 32
 #define OE_PIN 33
 
-HUB75_I2S_CFG::i2s_pins _pins={R1_PIN, G1_PIN, B1_PIN, R2_PIN, G2_PIN, B2_PIN, A_PIN, B_PIN, C_PIN, D_PIN, E_PIN, LAT_PIN, OE_PIN, CLK_PIN};
-HUB75_I2S_CFG mxconfig(
+static HUB75_I2S_CFG::i2s_pins _pins={R1_PIN, G1_PIN, B1_PIN, R2_PIN, G2_PIN, B2_PIN, A_PIN, B_PIN, C_PIN, D_PIN, E_PIN, LAT_PIN, OE_PIN, CLK_PIN};
+static HUB75_I2S_CFG mxconfig(
 	PANEL_RES_X, // Module width
 	PANEL_RES_Y, // Module height
 	1, // chain length (number of LED panels)
