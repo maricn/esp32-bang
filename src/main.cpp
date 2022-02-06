@@ -123,8 +123,8 @@ void onLine(OSCMessage &msg) {
   Serial.printf("[DEBUG] OSC.onLine: %u\n", type);
 #endif
   // coordinates within 64x32, at least (8,4) or lower (x,y)
-  Point center = {(uint8_t)(esp_random() & 0x3f | 0x8),
-                  (uint8_t)(esp_random() & 0x1f | 0x4)};
+  Point center = {(uint8_t)((esp_random() & 0x3f) | 0x8),
+                  (uint8_t)((esp_random() & 0x1f) | 0x4)};
   // can't be zero bc tick() when zero can make it 255
   uint8_t radius = (uint8_t)(esp_random() & 0b000011110) | 0b01;
 
